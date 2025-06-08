@@ -115,7 +115,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       visibility: visible;
     }
     
-    /* Position the invoice at the top of the page */
+    /* Position and scale the invoice to fill A4 */
     #invoice-content {
       position: absolute;
       left: 0;
@@ -124,7 +124,8 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       max-width: none !important;
       margin: 0 !important;
       padding: 0 !important;
-      height: 100vh !important;
+      transform: scale(1.15) !important; /* Scale up to fill more space */
+      transform-origin: top left !important;
     }
     
     /* Remove any margins and padding from body */
@@ -133,37 +134,36 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       padding: 0 !important;
     }
     
-    /* Ensure table takes full width and height */
+    /* Ensure table maintains structure */
     .invoice-table {
       width: 100% !important;
-      height: 100% !important;
-      font-size: 8px !important;
+      font-size: 10px !important; /* Increased from 8px for better readability */
       page-break-inside: avoid;
       table-layout: fixed;
     }
     
-    /* Optimize cell padding for maximum space usage */
+    /* Maintain reasonable cell padding */
     .invoice-table td {
-      padding: 1px !important;
-      line-height: 1.1 !important;
+      padding: 2px !important; /* Increased from 1px */
+      line-height: 1.2 !important;
       vertical-align: middle !important;
     }
     
-    /* Specific height adjustments for maximum space usage */
+    /* Specific height adjustments - more reasonable */
     .client-row {
-      height: 50px !important;
+      height: 55px !important;
     }
     
     .header-row {
-      height: 20px !important;
+      height: 25px !important;
     }
     
     .empty-row {
-      height: 15px !important;
+      height: 16px !important;
     }
     
     .footer-row {
-      height: 18px !important;
+      height: 20px !important;
     }
     
     /* Ensure header colors are preserved */
@@ -184,9 +184,9 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       border-color: #000 !important;
     }
     
-    /* Minimal page margins - fill entire A4 */
+    /* Minimal page margins with scaling */
     @page {
-      margin: 0.1in !important;
+      margin: 0.15in !important;
       size: A4;
     }
     
@@ -195,26 +195,26 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       display: none !important;
     }
     
-    /* Maximize font sizes for headers while keeping readable */
+    /* Optimize font sizes for scaled layout */
     .company-name {
-      font-size: 12px !important;
-      font-weight: bold !important;
-    }
-    
-    .tax-invoice-header {
       font-size: 14px !important;
       font-weight: bold !important;
     }
     
-    /* Optimize QR code and signature areas */
+    .tax-invoice-header {
+      font-size: 16px !important;
+      font-weight: bold !important;
+    }
+    
+    /* Optimize QR code and signature areas for scaling */
     .qr-code-area {
-      width: 70px !important;
-      height: 70px !important;
+      width: 75px !important;
+      height: 75px !important;
     }
     
     .signature-area {
-      width: 90px !important;
-      height: 35px !important;
+      width: 95px !important;
+      height: 40px !important;
     }
   }
   
@@ -712,9 +712,6 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
               </td>
               <td className="border-2" style={{ textAlign: "right" }}>
                 0
-              </td>
-              <td className="border-2" style={{ textAlign: "right", fontWeight: "bold" }}>
-                {formatCurrency(subtotal)}
               </td>
               <td className="border-2" style={{ textAlign: "right", fontWeight: "bold" }}>
                 {formatCurrency(subtotal)}
