@@ -1,8 +1,9 @@
 import { MongoClient, ServerApiVersion } from "mongodb"
-
+/*
 if (!process.env.MONGODB_URI) {
   throw new Error("Please add your MongoDB URI to .env.local")
 }
+*/
 
 const uri = mongodb+srv://f20230535:q75pz3aETnwQjtB2@cluster0.efrukyt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0 
 const options = {
