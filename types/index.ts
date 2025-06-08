@@ -1,13 +1,17 @@
 export interface Client {
   _id?: string
+  id?: string
   name: string
+  email?: string
+  phone?: string
   address: string
   city: string
   state: string
   pincode: string
   gstin?: string
-  email?: string
-  phone?: string
+  stateCode?: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface InvoiceItem {
@@ -18,24 +22,23 @@ export interface InvoiceItem {
   cgst: number
   sgst: number
   igst: number
-  amount: number
 }
 
 export interface Invoice {
   _id?: string
+  id?: string
   invoiceNumber: string
-  invoiceDate: Date
-  client: Client
+  clientId: string
+  date: Date
   items: InvoiceItem[]
   subtotal: number
-  cgstTotal: number
-  sgstTotal: number
-  igstTotal: number
-  total: number
+  totalTax: number
+  grandTotal: number
+  status: "draft" | "sent" | "paid" | "overdue"
   transportMode?: string
   vehicleNumber?: string
   poNumber?: string
   poDate?: Date
-  createdAt: Date
-  updatedAt: Date
+  createdAt?: Date
+  updatedAt?: Date
 }
