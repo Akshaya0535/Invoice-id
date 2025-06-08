@@ -92,6 +92,13 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       >
         <style jsx global>{`
           @media print {
+            /* Force color printing */
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            
             /* Hide everything except the invoice */
             body * {
               visibility: hidden;
@@ -127,6 +134,24 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
               page-break-inside: avoid;
             }
             
+            /* Ensure header colors are preserved */
+            .header-blue {
+              background-color: #B4C6E7 !important;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            
+            /* Ensure borders are visible */
+            .invoice-table td {
+              border: 1px solid #000 !important;
+            }
+            
+            .border-2 {
+              border-width: 2px !important;
+              border-color: #000 !important;
+            }
+            
             /* Page settings */
             @page {
               margin: 0.5in;
@@ -152,6 +177,9 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
           }
           .header-blue {
             background-color: #B4C6E7;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+            print-color-adjust: exact;
           }
           .border-2 {
             border-width: 2px !important;
@@ -209,7 +237,13 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
             <td
               className="border-2 header-blue"
               colSpan={16}
-              style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px", height: "34px" }}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                fontSize: "18px",
+                height: "34px",
+                backgroundColor: "#B4C6E7",
+              }}
             >
               Tax Invoice
             </td>
@@ -261,10 +295,26 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
           {/* Bill to Party Section */}
           <tr>
-            <td className="border-2 header-blue" colSpan={7} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={7}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Bill to Party
             </td>
-            <td className="border-2 header-blue" colSpan={9} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={9}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Ship to Party
             </td>
           </tr>
@@ -319,72 +369,202 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
           {/* Table Headers */}
           <tr>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               S. No.
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Product Description
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               HSN / SAC code
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Qty
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Rate
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Amount
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Disc.
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Taxable Value
             </td>
-            <td className="border-2 header-blue" colSpan={3} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={3}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               CGST
             </td>
-            <td className="border-2 header-blue" colSpan={2} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={2}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               SGST
             </td>
-            <td className="border-2 header-blue" colSpan={2} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={2}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               IGST
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Total
             </td>
           </tr>
 
           <tr>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue"></td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Rate
             </td>
-            <td className="border-2 header-blue" colSpan={2} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={2}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Amount
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Rate
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Amount
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Rate
             </td>
-            <td className="border-2 header-blue" style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Amount
             </td>
-            <td className="border-2 header-blue"></td>
+            <td className="border-2 header-blue" style={{ backgroundColor: "#B4C6E7" }}></td>
           </tr>
 
           {/* Invoice Items */}
@@ -457,7 +637,15 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
           {/* Total Row */}
           <tr>
-            <td className="border-2 header-blue" colSpan={3} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={3}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Total
             </td>
             <td className="border-2" style={{ textAlign: "center" }}>
@@ -492,7 +680,15 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
           {/* Amount in Words */}
           <tr>
-            <td className="border-2 header-blue" colSpan={8} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={8}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Total Invoice amount in words
             </td>
             <td className="border-2" colSpan={5} style={{ fontWeight: "bold" }}>
@@ -558,7 +754,15 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
           {/* Footer Section */}
           <tr>
-            <td className="border-2 header-blue" colSpan={5} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={5}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               Bank Details
             </td>
             <td className="border-2" colSpan={3} rowSpan={7} style={{ textAlign: "center", verticalAlign: "middle" }}>
@@ -577,7 +781,15 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
                 QR Code
               </div>
             </td>
-            <td className="border-2 header-blue" colSpan={5} style={{ textAlign: "center", fontWeight: "bold" }}>
+            <td
+              className="border-2 header-blue"
+              colSpan={5}
+              style={{
+                textAlign: "center",
+                fontWeight: "bold",
+                backgroundColor: "#B4C6E7",
+              }}
+            >
               GST on Reverse Charge
             </td>
             <td className="border-2" colSpan={3} style={{ textAlign: "right", fontWeight: "bold" }}>
