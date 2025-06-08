@@ -26,7 +26,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
   // Calculate dynamic empty rows based on items count
   // Maximize space usage with more items per page
-  const maxItemsPerPage = 12 // Increased from 8 to fill more space
+  const maxItemsPerPage = 10 // Adjusted for better fit
   const emptyRowsNeeded = Math.max(0, maxItemsPerPage - items.length)
 
   // Convert number to words (simplified version)
@@ -115,7 +115,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       visibility: visible;
     }
     
-    /* Position and scale the invoice to fill A4 */
+    /* Position the invoice to fill the page without scaling */
     #invoice-content {
       position: absolute;
       left: 0;
@@ -124,8 +124,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       max-width: none !important;
       margin: 0 !important;
       padding: 0 !important;
-      transform: scale(1.15) !important; /* Scale up to fill more space */
-      transform-origin: top left !important;
+      /* No transform scale to avoid cutoff */
     }
     
     /* Remove any margins and padding from body */
@@ -134,36 +133,38 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       padding: 0 !important;
     }
     
-    /* Ensure table maintains structure */
+    /* Ensure table takes full width */
     .invoice-table {
       width: 100% !important;
-      font-size: 10px !important; /* Increased from 8px for better readability */
+      font-size: 9px !important;
       page-break-inside: avoid;
       table-layout: fixed;
+      margin: 0 !important;
+      border-collapse: collapse !important;
     }
     
-    /* Maintain reasonable cell padding */
+    /* Optimize cell padding */
     .invoice-table td {
-      padding: 2px !important; /* Increased from 1px */
+      padding: 2px !important;
       line-height: 1.2 !important;
       vertical-align: middle !important;
     }
     
-    /* Specific height adjustments - more reasonable */
+    /* Specific height adjustments */
     .client-row {
-      height: 55px !important;
+      height: 50px !important;
     }
     
     .header-row {
-      height: 25px !important;
+      height: 22px !important;
     }
     
     .empty-row {
-      height: 16px !important;
+      height: 14px !important;
     }
     
     .footer-row {
-      height: 20px !important;
+      height: 18px !important;
     }
     
     /* Ensure header colors are preserved */
@@ -184,9 +185,9 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       border-color: #000 !important;
     }
     
-    /* Minimal page margins with scaling */
+    /* Minimal page margins */
     @page {
-      margin: 0.15in !important;
+      margin: 0.2in !important;
       size: A4;
     }
     
@@ -195,26 +196,26 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       display: none !important;
     }
     
-    /* Optimize font sizes for scaled layout */
+    /* Font sizes for headers */
     .company-name {
-      font-size: 14px !important;
+      font-size: 13px !important;
       font-weight: bold !important;
     }
     
     .tax-invoice-header {
-      font-size: 16px !important;
+      font-size: 14px !important;
       font-weight: bold !important;
     }
     
-    /* Optimize QR code and signature areas for scaling */
+    /* Optimize QR code and signature areas */
     .qr-code-area {
-      width: 75px !important;
-      height: 75px !important;
+      width: 70px !important;
+      height: 70px !important;
     }
     
     .signature-area {
-      width: 95px !important;
-      height: 40px !important;
+      width: 90px !important;
+      height: 35px !important;
     }
   }
   
@@ -376,7 +377,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
             {/* Client Details */}
             <tr className="client-row">
-              <td className="border-2" colSpan={7} style={{ verticalAlign: "top", padding: "6px" }}>
+              <td className="border-2" colSpan={7} style={{ verticalAlign: "top", padding: "4px" }}>
                 <div style={{ fontWeight: "bold" }}>{client.name}</div>
                 <div>{client.address}</div>
                 <div>
@@ -385,7 +386,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
                 {client.phone && <div>Ph: {client.phone}</div>}
                 {client.email && <div>Email: {client.email}</div>}
               </td>
-              <td className="border-2" colSpan={9} style={{ verticalAlign: "top", padding: "6px" }}>
+              <td className="border-2" colSpan={9} style={{ verticalAlign: "top", padding: "4px" }}>
                 <div style={{ fontWeight: "bold" }}>{client.name}</div>
                 <div>{client.address}</div>
                 <div>
@@ -759,7 +760,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
                 className="border-2"
                 colSpan={8}
                 rowSpan={5}
-                style={{ textAlign: "center", fontWeight: "bold", verticalAlign: "middle", padding: "6px" }}
+                style={{ textAlign: "center", fontWeight: "bold", verticalAlign: "middle", padding: "4px" }}
               >
                 INR {numberToWords(Math.floor(grandTotal))}
               </td>
