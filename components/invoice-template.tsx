@@ -26,7 +26,6 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
   // Convert number to words (simplified version)
   const numberToWords = (num: number): string => {
-    // This is a simplified version - you might want to use a proper library
     const ones = ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE"]
     const tens = ["", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"]
     const teens = [
@@ -52,15 +51,25 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
     const remainder = num % 100
 
     if (crores > 0) result += `${ones[crores]} CRORE `
-    if (lakhs > 0)
-      result += `${lakhs < 20 && lakhs > 9 ? teens[lakhs - 10] : tens[Math.floor(lakhs / 10)] + " " + ones[lakhs % 10]} LAKH `
-    if (thousands > 0)
-      result += `${thousands < 20 && thousands > 9 ? teens[thousands - 10] : tens[Math.floor(thousands / 10)] + " " + ones[thousands % 10]} THOUSAND `
+    if (lakhs > 0) {
+      if (lakhs < 20 && lakhs > 9) {
+        result += `${teens[lakhs - 10]} LAKH `
+      } else {
+        result += `${tens[Math.floor(lakhs / 10)]} ${ones[lakhs % 10]} LAKH `.replace(/\s+/g, " ")
+      }
+    }
+    if (thousands > 0) {
+      if (thousands < 20 && thousands > 9) {
+        result += `${teens[thousands - 10]} THOUSAND `
+      } else {
+        result += `${tens[Math.floor(thousands / 10)]} ${ones[thousands % 10]} THOUSAND `.replace(/\s+/g, " ")
+      }
+    }
     if (hundreds > 0) result += `${ones[hundreds]} HUNDRED `
     if (remainder > 0) {
       if (remainder < 10) result += ones[remainder]
       else if (remainder < 20) result += teens[remainder - 10]
-      else result += tens[Math.floor(remainder / 10)] + " " + ones[remainder % 10]
+      else result += `${tens[Math.floor(remainder / 10)]} ${ones[remainder % 10]}`.replace(/\s+/g, " ")
     }
 
     return result.trim() + " ONLY"
@@ -76,16 +85,18 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
         </Button>
       </div>
 
-      {/* Invoice Template */}
-      <div className="w-full max-w-4xl mx-auto bg-white print:max-w-none print:mx-0">
+      {/* Invoice Template - EXACT replica */}
+      <div className="w-full max-w-4xl mx-auto bg-white print:max-w-none print:mx-0 print:shadow-none">
         <style jsx>{`
           @media print {
             body { margin: 0; }
             .print\\:max-w-none { max-width: none !important; }
             .print\\:mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
             .print\\:hidden { display: none !important; }
+            .print\\:shadow-none { box-shadow: none !important; }
             table { page-break-inside: avoid; }
             .invoice-table { font-size: 10px; }
+            @page { margin: 0.5in; }
           }
           .invoice-table {
             border-collapse: collapse;
@@ -175,7 +186,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
           <tr>
             <td className="border-2" colSpan={7} style={{ fontWeight: "bold" }}>
-              Invoice date: {new Date(invoice.date).toLocaleDateString("en-IN")}
+              Invoice date: {new Date(invoice.invoiceDate || invoice.date).toLocaleDateString("en-IN")}
             </td>
             <td className="border-2" colSpan={9} style={{ fontWeight: "bold" }}>
               Supplier's PO No: {invoice.poNumber || ""}

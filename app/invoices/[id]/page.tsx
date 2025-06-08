@@ -4,53 +4,72 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Printer, FileEdit, AlertCircle } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
-import type { Invoice } from "@/types"
+import { ArrowLeft, AlertCircle } from "lucide-react"
+import { InvoiceTemplate } from "@/components/invoice-template"
+import type { Invoice, InvoiceItem, Client } from "@/types"
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [client, setClient] = useState<Client | null>(null)
+  const [items, setItems] = useState<InvoiceItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchInvoice = async () => {
+    const fetchInvoiceData = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/invoices/${params.id}`)
 
-        if (!response.ok) {
-          if (response.status === 404) {
+        // Fetch invoice data
+        const invoiceResponse = await fetch(`/api/invoices/${params.id}`)
+
+        if (!invoiceResponse.ok) {
+          if (invoiceResponse.status === 404) {
             setError("Invoice not found. The requested invoice may have been deleted or does not exist.")
           } else {
-            const errorData = await response.json()
+            const errorData = await invoiceResponse.json()
             setError(errorData.error || "Failed to load invoice data")
           }
           return
         }
 
-        const data = await response.json()
-        console.log("Fetched invoice data:", data) // Debug log
-        setInvoice(data)
+        const invoiceData = await invoiceResponse.json()
+        console.log("Fetched invoice data:", invoiceData)
+
+        setInvoice(invoiceData)
+        setItems(invoiceData.items || [])
+
+        // Fetch client data if clientId exists
+        if (invoiceData.clientId || invoiceData.client?._id) {
+          const clientId = invoiceData.clientId || invoiceData.client._id
+          const clientResponse = await fetch(`/api/clients/${clientId}`)
+
+          if (clientResponse.ok) {
+            const clientData = await clientResponse.json()
+            setClient(clientData)
+          } else {
+            // If client fetch fails, use embedded client data if available
+            if (invoiceData.client) {
+              setClient(invoiceData.client)
+            } else {
+              console.warn("Could not fetch client data")
+            }
+          }
+        } else if (invoiceData.client) {
+          // Use embedded client data
+          setClient(invoiceData.client)
+        }
       } catch (err) {
-        console.error("Error fetching invoice:", err)
+        console.error("Error fetching invoice data:", err)
         setError("An unexpected error occurred while loading the invoice")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchInvoice()
+    fetchInvoiceData()
   }, [params.id])
-
-  const handlePrint = () => {
-    window.print()
-  }
-
-  const handleEdit = () => {
-    router.push(`/invoices/edit/${params.id}`)
-  }
 
   if (loading) {
     return (
@@ -78,10 +97,42 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
           <CardContent>
             <p className="text-gray-700 dark:text-gray-300">{error || "The requested invoice could not be found"}</p>
             <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Invoice ID: {params.id}</p>
-            <div className="mt-6">
-              <Button onClick={() => router.push("/invoices/create")} variant="outline">
-                Create New Invoice
+            <div className="mt-6 space-x-4">
+              <Button onClick={() => router.push("/invoices")} variant="outline">
+                View All Invoices
               </Button>
+              <Button onClick={() => router.push("/invoices/create")}>Create New Invoice</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!client) {
+    return (
+      <div className="container mx-auto py-8">
+        <Button onClick={() => router.back()} variant="outline" className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Invoices
+        </Button>
+
+        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10">
+          <CardHeader>
+            <CardTitle className="flex items-center text-yellow-600 dark:text-yellow-400">
+              <AlertCircle className="mr-2 h-5 w-5" />
+              Client Data Missing
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700 dark:text-gray-300">
+              Invoice found but client information is missing. Please ensure the client data is properly linked.
+            </p>
+            <div className="mt-6 space-x-4">
+              <Button onClick={() => router.push("/invoices")} variant="outline">
+                View All Invoices
+              </Button>
+              <Button onClick={() => router.push(`/invoices/edit/${params.id}`)}>Edit Invoice</Button>
             </div>
           </CardContent>
         </Card>
@@ -91,122 +142,24 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
 
   return (
     <div className="container mx-auto py-6">
-      <Button onClick={() => router.back()} variant="outline" className="mb-6 print:hidden">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Invoices
-      </Button>
-
-      {/* Invoice content would go here */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoice #{invoice.invoiceNumber}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-medium">Client</h3>
-                <p>{invoice.client?.name || "Client information not available"}</p>
-                <p>{invoice.client?.address || ""}</p>
-              </div>
-              <div>
-                <h3 className="font-medium">Details</h3>
-                <p>Date: {new Date(invoice.invoiceDate).toLocaleDateString()}</p>
-                <p>Invoice #: {invoice.invoiceNumber}</p>
-                {invoice.poNumber && <p>PO #: {invoice.poNumber}</p>}
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <h3 className="font-medium mb-2">Items</h3>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Description</th>
-                    <th className="text-right py-2">HSN</th>
-                    <th className="text-right py-2">Qty</th>
-                    <th className="text-right py-2">Rate</th>
-                    <th className="text-right py-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoice.items?.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2">{item.description}</td>
-                      <td className="text-right py-2">{item.hsnCode}</td>
-                      <td className="text-right py-2">{item.quantity}</td>
-                      <td className="text-right py-2">{formatCurrency(item.rate)}</td>
-                      <td className="text-right py-2">{formatCurrency(item.quantity * item.rate)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={4} className="text-right font-medium py-2">
-                      Subtotal:
-                    </td>
-                    <td className="text-right py-2">{formatCurrency(invoice.subtotal)}</td>
-                  </tr>
-                  {invoice.cgstTotal > 0 && (
-                    <tr>
-                      <td colSpan={4} className="text-right py-2">
-                        CGST:
-                      </td>
-                      <td className="text-right py-2">{formatCurrency(invoice.cgstTotal)}</td>
-                    </tr>
-                  )}
-                  {invoice.sgstTotal > 0 && (
-                    <tr>
-                      <td colSpan={4} className="text-right py-2">
-                        SGST:
-                      </td>
-                      <td className="text-right py-2">{formatCurrency(invoice.sgstTotal)}</td>
-                    </tr>
-                  )}
-                  {invoice.igstTotal > 0 && (
-                    <tr>
-                      <td colSpan={4} className="text-right py-2">
-                        IGST:
-                      </td>
-                      <td className="text-right py-2">{formatCurrency(invoice.igstTotal)}</td>
-                    </tr>
-                  )}
-                  <tr>
-                    <td colSpan={4} className="text-right font-bold py-2">
-                      Total:
-                    </td>
-                    <td className="text-right font-bold py-2">{formatCurrency(invoice.total)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            {invoice.transportMode && (
-              <div className="mt-4">
-                <p>
-                  <strong>Transport Mode:</strong> {invoice.transportMode}
-                </p>
-                {invoice.vehicleNumber && (
-                  <p>
-                    <strong>Vehicle Number:</strong> {invoice.vehicleNumber}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="mt-6 flex space-x-4 print:hidden">
-        <Button onClick={handlePrint}>
-          <Printer className="mr-2 h-4 w-4" />
-          Print Invoice
-        </Button>
-        <Button onClick={handleEdit} variant="outline">
-          <FileEdit className="mr-2 h-4 w-4" />
-          Edit Invoice
+      {/* Back Button - Hidden during print */}
+      <div className="mb-6 print:hidden">
+        <Button onClick={() => router.back()} variant="outline" className="flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Invoices
         </Button>
       </div>
+
+      {/* Use the exact invoice template */}
+      <InvoiceTemplate
+        invoice={{
+          ...invoice,
+          invoiceDate: invoice.invoiceDate || invoice.date || new Date(),
+          date: invoice.invoiceDate || invoice.date || new Date(),
+        }}
+        client={client}
+        items={items}
+      />
     </div>
   )
 }
