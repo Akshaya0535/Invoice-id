@@ -25,8 +25,8 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
   const grandTotal = subtotal + totalTax
 
   // Calculate dynamic empty rows based on items count
-  // Ensure we have enough space but not too much to cause overflow
-  const maxItemsPerPage = 8 // Reduced from 10 to ensure single page
+  // Maximize space usage with more items per page
+  const maxItemsPerPage = 12 // Increased from 8 to fill more space
   const emptyRowsNeeded = Math.max(0, maxItemsPerPage - items.length)
 
   // Convert number to words (simplified version)
@@ -96,127 +96,151 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
         id="invoice-content"
       >
         <style jsx global>{`
-          @media print {
-            /* Force color printing */
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            
-            /* Hide everything except the invoice */
-            body * {
-              visibility: hidden;
-            }
-            
-            /* Show only the invoice content */
-            #invoice-content,
-            #invoice-content * {
-              visibility: visible;
-            }
-            
-            /* Position the invoice at the top of the page */
-            #invoice-content {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100% !important;
-              max-width: none !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            
-            /* Remove any margins and padding from body */
-            body {
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            
-            /* Ensure table takes full width and proper sizing */
-            .invoice-table {
-              width: 100% !important;
-              font-size: 9px !important; /* Reduced from 10px */
-              page-break-inside: avoid;
-              table-layout: fixed;
-            }
-            
-            /* Reduce cell padding for print */
-            .invoice-table td {
-              padding: 2px !important; /* Reduced from 4px */
-              line-height: 1.2 !important;
-            }
-            
-            /* Reduce row heights */
-            .invoice-table tr {
-              height: auto !important;
-            }
-            
-            /* Specific height adjustments */
-            .client-row {
-              height: 45px !important; /* Reduced from 60px */
-            }
-            
-            .header-row {
-              height: 25px !important; /* Reduced from 34px */
-            }
-            
-            .empty-row {
-              height: 12px !important; /* Reduced from 17px */
-            }
-            
-            /* Ensure header colors are preserved */
-            .header-blue {
-              background-color: #B4C6E7 !important;
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            
-            /* Ensure borders are visible */
-            .invoice-table td {
-              border: 1px solid #000 !important;
-            }
-            
-            .border-2 {
-              border-width: 2px !important;
-              border-color: #000 !important;
-            }
-            
-            /* Page settings - optimized for single page */
-            @page {
-              margin: 0.3in; /* Reduced from 0.5in */
-              size: A4;
-            }
-            
-            /* Hide print button and other UI elements */
-            .print\\:hidden {
-              display: none !important;
-            }
-          }
-          
-          .invoice-table {
-            border-collapse: collapse;
-            width: 100%;
-            font-family: "Liberation Sans", Arial, sans-serif;
-            font-size: 11px; /* Slightly reduced for screen */
-            table-layout: fixed;
-          }
-          .invoice-table td {
-            border: 1px solid #000;
-            padding: 3px; /* Reduced from 4px */
-            vertical-align: middle;
-            word-wrap: break-word;
-          }
-          .header-blue {
-            background-color: #B4C6E7;
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          .border-2 {
-            border-width: 2px !important;
-          }
-        `}</style>
+  @media print {
+    /* Force color printing */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    /* Hide everything except the invoice */
+    body * {
+      visibility: hidden;
+    }
+    
+    /* Show only the invoice content */
+    #invoice-content,
+    #invoice-content * {
+      visibility: visible;
+    }
+    
+    /* Position the invoice at the top of the page */
+    #invoice-content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100vh !important;
+    }
+    
+    /* Remove any margins and padding from body */
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    /* Ensure table takes full width and height */
+    .invoice-table {
+      width: 100% !important;
+      height: 100% !important;
+      font-size: 8px !important;
+      page-break-inside: avoid;
+      table-layout: fixed;
+    }
+    
+    /* Optimize cell padding for maximum space usage */
+    .invoice-table td {
+      padding: 1px !important;
+      line-height: 1.1 !important;
+      vertical-align: middle !important;
+    }
+    
+    /* Specific height adjustments for maximum space usage */
+    .client-row {
+      height: 50px !important;
+    }
+    
+    .header-row {
+      height: 20px !important;
+    }
+    
+    .empty-row {
+      height: 15px !important;
+    }
+    
+    .footer-row {
+      height: 18px !important;
+    }
+    
+    /* Ensure header colors are preserved */
+    .header-blue {
+      background-color: #B4C6E7 !important;
+      -webkit-print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    /* Ensure borders are visible */
+    .invoice-table td {
+      border: 1px solid #000 !important;
+    }
+    
+    .border-2 {
+      border-width: 2px !important;
+      border-color: #000 !important;
+    }
+    
+    /* Minimal page margins - fill entire A4 */
+    @page {
+      margin: 0.1in !important;
+      size: A4;
+    }
+    
+    /* Hide print button and other UI elements */
+    .print\\:hidden {
+      display: none !important;
+    }
+    
+    /* Maximize font sizes for headers while keeping readable */
+    .company-name {
+      font-size: 12px !important;
+      font-weight: bold !important;
+    }
+    
+    .tax-invoice-header {
+      font-size: 14px !important;
+      font-weight: bold !important;
+    }
+    
+    /* Optimize QR code and signature areas */
+    .qr-code-area {
+      width: 70px !important;
+      height: 70px !important;
+    }
+    
+    .signature-area {
+      width: 90px !important;
+      height: 35px !important;
+    }
+  }
+  
+  .invoice-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 10px;
+    table-layout: fixed;
+  }
+  .invoice-table td {
+    border: 1px solid #000;
+    padding: 2px;
+    vertical-align: middle;
+    word-wrap: break-word;
+  }
+  .header-blue {
+    background-color: #B4C6E7;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .border-2 {
+    border-width: 2px !important;
+  }
+`}</style>
 
         <table className="invoice-table">
           <colgroup>
@@ -235,11 +259,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
 
             {/* Company Name */}
             <tr>
-              <td
-                className="border-2"
-                colSpan={16}
-                style={{ textAlign: "center", fontWeight: "bold", fontSize: "14px" }}
-              >
+              <td className="border-2 company-name" colSpan={16} style={{ textAlign: "center", fontWeight: "bold" }}>
                 TRIOS ENGINEERING SOLUTIONS
               </td>
             </tr>
@@ -272,12 +292,11 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
             {/* Tax Invoice Header */}
             <tr className="header-row">
               <td
-                className="border-2 header-blue"
+                className="border-2 header-blue tax-invoice-header"
                 colSpan={16}
                 style={{
                   textAlign: "center",
                   fontWeight: "bold",
-                  fontSize: "16px",
                   backgroundColor: "#B4C6E7",
                 }}
               >
@@ -697,6 +716,9 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
               <td className="border-2" style={{ textAlign: "right", fontWeight: "bold" }}>
                 {formatCurrency(subtotal)}
               </td>
+              <td className="border-2" style={{ textAlign: "right", fontWeight: "bold" }}>
+                {formatCurrency(subtotal)}
+              </td>
               <td className="border-2"></td>
               <td className="border-2" colSpan={2} style={{ textAlign: "right", fontWeight: "bold" }}>
                 {formatCurrency(totalCGST)}
@@ -789,7 +811,7 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
             </tr>
 
             {/* Footer Section - Compact */}
-            <tr>
+            <tr className="footer-row">
               <td
                 className="border-2 header-blue"
                 colSpan={5}
@@ -804,15 +826,14 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
               <td className="border-2" colSpan={3} rowSpan={6} style={{ textAlign: "center", verticalAlign: "middle" }}>
                 {/* QR Code placeholder - smaller */}
                 <div
+                  className="qr-code-area"
                   style={{
-                    width: "80px",
-                    height: "80px",
                     border: "1px solid #ccc",
                     margin: "0 auto",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "10px",
+                    fontSize: "8px",
                   }}
                 >
                   QR Code
@@ -860,9 +881,8 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
                 rowSpan={3}
                 style={{ textAlign: "center", verticalAlign: "bottom", fontWeight: "bold" }}
               >
-                <div style={{ marginBottom: "10px" }}>
-                  {/* Signature placeholder - smaller */}
-                  <div style={{ width: "100px", height: "40px", border: "1px solid #ccc", margin: "0 auto 5px" }}></div>
+                <div style={{ marginBottom: "5px" }}>
+                  <div className="signature-area" style={{ border: "1px solid #ccc", margin: "0 auto 3px" }}></div>
                   TRIOS ENGINEERING SOLUTIONS
                 </div>
               </td>
