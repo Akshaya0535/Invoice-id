@@ -86,18 +86,59 @@ export function InvoiceTemplate({ invoice, client, items }: InvoiceTemplateProps
       </div>
 
       {/* Invoice Template - EXACT replica */}
-      <div className="w-full max-w-4xl mx-auto bg-white print:max-w-none print:mx-0 print:shadow-none">
-        <style jsx>{`
+      <div
+        className="w-full max-w-4xl mx-auto bg-white print:max-w-none print:mx-0 print:shadow-none"
+        id="invoice-content"
+      >
+        <style jsx global>{`
           @media print {
-            body { margin: 0; }
-            .print\\:max-w-none { max-width: none !important; }
-            .print\\:mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
-            .print\\:hidden { display: none !important; }
-            .print\\:shadow-none { box-shadow: none !important; }
-            table { page-break-inside: avoid; }
-            .invoice-table { font-size: 10px; }
-            @page { margin: 0.5in; }
+            /* Hide everything except the invoice */
+            body * {
+              visibility: hidden;
+            }
+            
+            /* Show only the invoice content */
+            #invoice-content,
+            #invoice-content * {
+              visibility: visible;
+            }
+            
+            /* Position the invoice at the top of the page */
+            #invoice-content {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100% !important;
+              max-width: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            
+            /* Remove any margins and padding from body */
+            body {
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            
+            /* Ensure table takes full width and proper sizing */
+            .invoice-table {
+              width: 100% !important;
+              font-size: 10px !important;
+              page-break-inside: avoid;
+            }
+            
+            /* Page settings */
+            @page {
+              margin: 0.5in;
+              size: A4;
+            }
+            
+            /* Hide print button and other UI elements */
+            .print\\:hidden {
+              display: none !important;
+            }
           }
+          
           .invoice-table {
             border-collapse: collapse;
             width: 100%;
