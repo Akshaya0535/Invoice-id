@@ -5,7 +5,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 
-const uri = "mongodb+srv://f20230535:q75pz3aETnwQjtB2@cluster0.efrukyt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0" 
+const uri = process.env.MONGODB_URI 
 const options = {
   serverApi: {
     version: ServerApiVersion.v1,
