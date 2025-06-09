@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       id: user.id!,
       username: user.username,
       role: user.role,
+      mustChangePassword: user.mustChangePassword || false,
     })
 
     return NextResponse.json({
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         username: user.username,
         role: user.role,
+        mustChangePassword: user.mustChangePassword || false,
       },
     })
   } catch (error) {
