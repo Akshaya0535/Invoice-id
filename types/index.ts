@@ -49,6 +49,7 @@ export interface User {
   username: string
   password: string
   role: "admin" | "read-only" | "read-write"
+  mustChangePassword?: boolean
   createdAt?: Date
   updatedAt?: Date
   createdBy?: string
@@ -59,5 +60,6 @@ export interface Session {
     id: string
     username: string
     role: "admin" | "read-only" | "read-write"
+    mustChangePassword?: boolean
   }
 }
