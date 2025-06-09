@@ -2,17 +2,35 @@ import { MongoClient } from "mongodb"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
 
-// Generate a cryptographically secure password
+// Update the generateSecurePassword function to ensure it meets our requirements
 function generateSecurePassword(length = 16) {
-  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
-  let password = ""
+  // Ensure we have at least one of each required character type
+  const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
+  const numberChars = "0123456789"
+  const specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
 
-  for (let i = 0; i < length; i++) {
-    const randomIndex = crypto.randomInt(0, charset.length)
-    password += charset[randomIndex]
+  // Start with one character from each required set
+  let password = ""
+  password += uppercaseChars[crypto.randomInt(0, uppercaseChars.length)]
+  password += lowercaseChars[crypto.randomInt(0, lowercaseChars.length)]
+  password += numberChars[crypto.randomInt(0, numberChars.length)]
+  password += specialChars[crypto.randomInt(0, specialChars.length)]
+
+  // Fill the rest with random characters from all sets
+  const allChars = uppercaseChars + lowercaseChars + numberChars + specialChars
+  const remainingLength = length - 4
+
+  for (let i = 0; i < remainingLength; i++) {
+    const randomIndex = crypto.randomInt(0, allChars.length)
+    password += allChars[randomIndex]
   }
 
+  // Shuffle the password to avoid predictable pattern
   return password
+    .split("")
+    .sort(() => 0.5 - Math.random())
+    .join("")
 }
 
 async function createAdminUser() {

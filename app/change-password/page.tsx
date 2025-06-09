@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, CheckCircle } from "lucide-react"
+import { validatePassword } from "@/lib/password-validation"
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("")
@@ -46,8 +47,10 @@ export default function ChangePasswordPage() {
       return
     }
 
-    if (newPassword.length < 8) {
-      setError("New password must be at least 8 characters long")
+    // Validate password
+    const passwordValidation = validatePassword(newPassword)
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.errors.join("\n"))
       setIsLoading(false)
       return
     }
@@ -129,7 +132,10 @@ export default function ChangePasswordPage() {
                 disabled={isLoading}
                 minLength={8}
               />
-              <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
+              <p className="text-xs text-gray-500">
+                Password must be at least 8 characters long, include uppercase and lowercase letters, numbers, and
+                special characters.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
@@ -144,7 +150,7 @@ export default function ChangePasswordPage() {
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm text-center flex items-center justify-center gap-2">
+              <div className="text-red-600 text-sm text-center flex items-center justify-center gap-2 whitespace-pre-line">
                 <AlertCircle className="h-4 w-4" />
                 {error}
               </div>
