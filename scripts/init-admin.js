@@ -1,68 +1,87 @@
 import { MongoClient } from "mongodb"
 import crypto from "crypto"
+import bcrypt from "bcryptjs"
 
-const MONGODB_URI = process.env.MONGODB_URI
-
-if (!MONGODB_URI) {
-  throw new Error("Please add your MongoDB URI to .env.local")
-}
-
-function hashPassword(password) {
-  return crypto.createHash("sha256").update(password).digest("hex")
-}
-
+// Generate a cryptographically secure password
 function generateSecurePassword(length = 16) {
   const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
   let password = ""
+
   for (let i = 0; i < length; i++) {
-    password += charset.charAt(Math.floor(Math.random() * charset.length))
+    const randomIndex = crypto.randomInt(0, charset.length)
+    password += charset[randomIndex]
   }
+
   return password
 }
 
-async function initializeAdmin() {
-  const client = new MongoClient(MONGODB_URI)
+async function createAdminUser() {
+  const uri = process.env.MONGODB_URI
+
+  if (!uri) {
+    console.error("❌ MONGODB_URI environment variable is not set")
+    console.log("Please add MONGODB_URI to your .env.local file")
+    process.exit(1)
+  }
+
+  const client = new MongoClient(uri)
 
   try {
     await client.connect()
-    const db = client.db("invoice_system")
+    console.log("✅ Connected to MongoDB")
+
+    const db = client.db()
+    const usersCollection = db.collection("users")
 
     // Check if admin user already exists
-    const existingAdmin = await db.collection("users").findOne({ username: "admin" })
-
+    const existingAdmin = await usersCollection.findOne({ username: "admin" })
     if (existingAdmin) {
-      console.log("Admin user already exists")
+      console.log("⚠️  Admin user already exists!")
+      console.log("Run 'node scripts/delete-existing-admin.js' first if you want to recreate it")
       return
     }
 
-    // Generate a secure random password
-    const securePassword = generateSecurePassword()
+    // Generate secure password
+    const password = generateSecurePassword(16)
+    const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create admin user
     const adminUser = {
       username: "admin",
-      password: hashPassword(securePassword),
+      password: hashedPassword,
       role: "admin",
+      mustChangePassword: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: "system",
-      mustChangePassword: true, // Flag to force password change on first login
     }
 
-    await db.collection("users").insertOne(adminUser)
-    console.log("Admin user created successfully!")
-    console.log("=" * 50)
-    console.log("IMPORTANT: Save these credentials securely!")
-    console.log("Username: admin")
-    console.log(`Password: ${securePassword}`)
-    console.log("=" * 50)
+    await usersCollection.insertOne(adminUser)
+
+    console.log("\n🎉 Admin user created successfully!")
+    console.log("==================================================")
+    console.log("🔐 IMPORTANT: Save these credentials securely!")
+    console.log(`Username: admin`)
+    console.log(`Password: ${password}`)
+    console.log("==================================================")
     console.log("⚠️  You will be required to change this password on first login")
     console.log("⚠️  This password will not be shown again!")
+    console.log("\n💡 Next steps:")
+    console.log("1. Save the password in a secure location")
+    console.log("2. Start your app: npm run dev")
+    console.log("3. Go to http://localhost:3000/login")
+    console.log("4. Login with the credentials above")
+    console.log("5. You'll be redirected to change your password\n")
   } catch (error) {
-    console.error("Error initializing admin user:", error)
+    console.error("❌ Error creating admin user:", error.message)
+    process.exit(1)
   } finally {
     await client.close()
+    console.log("📝 Database connection closed")
   }
 }
 
-initializeAdmin()
+// Load environment variables
+import { config } from "dotenv"
+config({ path: ".env.local" })
+
+createAdminUser()

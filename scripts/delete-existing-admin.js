@@ -1,30 +1,39 @@
 import { MongoClient } from "mongodb"
+import { config } from "dotenv"
 
-const MONGODB_URI = process.env.MONGODB_URI
-
-if (!MONGODB_URI) {
-  throw new Error("Please add your MongoDB URI to .env.local")
-}
+// Load environment variables
+config({ path: ".env.local" })
 
 async function deleteExistingAdmin() {
-  const client = new MongoClient(MONGODB_URI)
+  const uri = process.env.MONGODB_URI
+
+  if (!uri) {
+    console.error("❌ MONGODB_URI environment variable is not set")
+    process.exit(1)
+  }
+
+  const client = new MongoClient(uri)
 
   try {
     await client.connect()
-    const db = client.db("invoice_system")
+    console.log("✅ Connected to MongoDB")
+
+    const db = client.db()
+    const usersCollection = db.collection("users")
 
     // Delete existing admin user
-    const result = await db.collection("users").deleteOne({ username: "admin" })
+    const result = await usersCollection.deleteOne({ username: "admin" })
 
     if (result.deletedCount > 0) {
-      console.log("✅ Existing admin user deleted successfully")
+      console.log("🗑️  Existing admin user deleted successfully")
     } else {
       console.log("ℹ️  No existing admin user found")
     }
   } catch (error) {
-    console.error("Error deleting admin user:", error)
+    console.error("❌ Error deleting admin user:", error.message)
   } finally {
     await client.close()
+    console.log("📝 Database connection closed")
   }
 }
 
