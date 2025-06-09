@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession, createUser } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
+// Add import for password validation
+import { validatePassword } from "@/lib/password-validation"
 
 export async function GET() {
   try {
@@ -32,6 +34,7 @@ export async function GET() {
   }
 }
 
+// Update the POST method
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
@@ -48,6 +51,17 @@ export async function POST(request: NextRequest) {
 
     if (!["admin", "read-only", "read-write"].includes(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 })
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: "Password does not meet security requirements: " + passwordValidation.errors.join(", "),
+        },
+        { status: 400 },
+      )
     }
 
     // Check if user already exists

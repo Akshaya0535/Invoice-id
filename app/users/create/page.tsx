@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { validatePassword } from "@/lib/password-validation"
 
 export default function CreateUserPage() {
   const router = useRouter()
@@ -36,6 +37,14 @@ export default function CreateUserPage() {
     setIsSubmitting(true)
     setError("")
     setSuccess("")
+
+    // Validate password
+    const passwordValidation = validatePassword(formData.password)
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.errors.join("\n"))
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const response = await fetch("/api/users", {
@@ -83,7 +92,11 @@ export default function CreateUserPage() {
             <CardDescription>Enter the details for the new user.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded whitespace-pre-line">
+                {error}
+              </div>
+            )}
             {success && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">{success}</div>
             )}

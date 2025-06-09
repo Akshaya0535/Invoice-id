@@ -3,6 +3,9 @@ import { getSession, hashPassword, verifyPassword } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 
+// Add import for password validation
+import { validatePassword } from "@/lib/password-validation"
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
@@ -16,8 +19,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Current password and new password are required" }, { status: 400 })
     }
 
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: "New password must be at least 8 characters long" }, { status: 400 })
+    // Validate password
+    const passwordValidation = validatePassword(newPassword)
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: "Password does not meet security requirements: " + passwordValidation.errors.join(", "),
+        },
+        { status: 400 },
+      )
     }
 
     const client = await clientPromise
