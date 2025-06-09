@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Sidebar } from "@/components/layout/sidebar"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function ClientLayout({
   children,
@@ -42,19 +43,36 @@ export default function ClientLayout({
     }
   }
 
+  // If we're on the login page or loading, just show the children
+  if (pathname === "/login" || isLoading) {
+    return <>{children}</>
+  }
+
+  // For authenticated pages, show the full layout with sidebar
   return (
-    <>
-      {children}
-      {session && pathname !== "/login" && (
-        <div className="mt-auto p-4 border-t">
-          <div className="text-sm text-gray-600 mb-2">
-            Logged in as: {session.username} ({session.role})
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <header className="h-14 border-b flex items-center justify-between px-4">
+          <h1 className="text-lg font-semibold">Invoice System</h1>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <div className="text-sm">
+              {session ? (
+                <div className="flex items-center gap-2">
+                  <span>
+                    {session.username} ({session.role})
+                  </span>
+                  <Button onClick={handleLogout} variant="outline" size="sm">
+                    Logout
+                  </Button>
+                </div>
+              ) : null}
+            </div>
           </div>
-          <Button onClick={handleLogout} variant="outline" size="sm" className="w-full">
-            Logout
-          </Button>
-        </div>
-      )}
-    </>
+        </header>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
+      </div>
+    </div>
   )
 }
