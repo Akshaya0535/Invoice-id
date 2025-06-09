@@ -42,3 +42,22 @@ export interface Invoice {
   createdAt?: Date
   updatedAt?: Date
 }
+
+export interface User {
+  _id?: string
+  id?: string
+  username: string
+  password: string
+  role: "admin" | "read-only" | "read-write"
+  createdAt?: Date
+  updatedAt?: Date
+  createdBy?: string
+}
+
+export interface Session {
+  user: {
+    id: string
+    username: string
+    role: "admin" | "read-only" | "read-write"
+  }
+}
