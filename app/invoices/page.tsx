@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Eye, FileText, Trash2 } from "lucide-react"
+import { Plus, Search, Eye, FileText, Trash2, Filter, ArrowUpDown, X } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
-import type { Invoice } from "@/types"
+import type { Invoice, Client } from "@/types"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,29 +21,115 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [clients, setClients] = useState<Client[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [session, setSession] = useState<any>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        const response = await fetch("/api/invoices")
-        if (!response.ok) throw new Error("Failed to fetch invoices")
-        const data = await response.json()
-        setInvoices(data)
-      } catch (error) {
-        console.error("Error fetching invoices:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // Filtering and sorting states
+  const [selectedClient, setSelectedClient] = useState<string>("all")
+  const [selectedFinancialYear, setSelectedFinancialYear] = useState<string>("all")
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined)
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined)
+  const [sortField, setSortField] = useState<string>("invoiceDate")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [financialYears, setFinancialYears] = useState<string[]>([])
 
-    fetchInvoices()
+  useEffect(() => {
+    fetchSession()
+    fetchClients()
   }, [])
+
+  useEffect(() => {
+    fetchInvoices()
+  }, [selectedClient, selectedFinancialYear, startDate, endDate, sortField, sortOrder])
+
+  const fetchSession = async () => {
+    try {
+      const response = await fetch("/api/auth/session")
+      if (response.ok) {
+        const data = await response.json()
+        setSession(data.user)
+      }
+    } catch (error) {
+      console.error("Error fetching session:", error)
+    }
+  }
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch("/api/clients")
+      if (response.ok) {
+        const data = await response.json()
+        setClients(data)
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error)
+    }
+  }
+
+  const fetchInvoices = async () => {
+    try {
+      setIsLoading(true)
+
+      // Build query parameters
+      const params = new URLSearchParams()
+
+      if (selectedClient !== "all") {
+        params.append("client", selectedClient)
+      }
+
+      if (selectedFinancialYear !== "all") {
+        params.append("financialYear", selectedFinancialYear)
+      }
+
+      if (startDate) {
+        params.append("startDate", startDate.toISOString())
+      }
+
+      if (endDate) {
+        params.append("endDate", endDate.toISOString())
+      }
+
+      params.append("sortField", sortField)
+      params.append("sortOrder", sortOrder)
+
+      const response = await fetch(`/api/invoices?${params.toString()}`)
+
+      if (!response.ok) throw new Error("Failed to fetch invoices")
+
+      const data = await response.json()
+      setInvoices(data)
+
+      // Extract unique financial years from invoice numbers
+      const years = [
+        ...new Set(
+          data
+            .map((invoice: Invoice) => {
+              const match = invoice.invoiceNumber.match(/\/(\d{2}-\d{2})$/)
+              return match ? match[1] : null
+            })
+            .filter(Boolean),
+        ),
+      ]
+
+      setFinancialYears(years)
+    } catch (error) {
+      console.error("Error fetching invoices:", error)
+      setError("Failed to load invoices")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleDelete = async (id: string) => {
     try {
@@ -51,13 +137,35 @@ export default function InvoicesPage() {
         method: "DELETE",
       })
 
-      if (!response.ok) throw new Error("Failed to delete invoice")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to delete invoice")
+      }
 
       // Remove the deleted invoice from the state
       setInvoices(invoices.filter((invoice) => invoice._id !== id))
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting invoice:", error)
+      alert(error.message || "Error deleting invoice")
     }
+  }
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortOrder("asc")
+    }
+  }
+
+  const resetFilters = () => {
+    setSelectedClient("all")
+    setSelectedFinancialYear("all")
+    setStartDate(undefined)
+    setEndDate(undefined)
+    setSortField("invoiceDate")
+    setSortOrder("desc")
   }
 
   const filteredInvoices = invoices.filter(
@@ -65,6 +173,8 @@ export default function InvoicesPage() {
       invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.client.name.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  const isAdmin = session?.role === "admin"
 
   return (
     <div className="space-y-6">
@@ -83,8 +193,9 @@ export default function InvoicesPage() {
           <CardTitle>Invoice List</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-4">
-            <div className="relative">
+          <div className="mb-6 space-y-4 md:flex-row md:items-center md:justify-between">
+            {/* Search and Filter Controls */}
+            <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
@@ -93,6 +204,120 @@ export default function InvoicesPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1">
+                    <Filter className="h-3.5 w-3.5" />
+                    <span>Filter</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-4 p-2">
+                    <h4 className="font-medium">Filter Invoices</h4>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Client</label>
+                      <Select value={selectedClient} onValueChange={setSelectedClient}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All Clients" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Clients</SelectItem>
+                          {clients.map((client) => (
+                            <SelectItem key={client._id} value={client._id!}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Financial Year</label>
+                      <Select value={selectedFinancialYear} onValueChange={setSelectedFinancialYear}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All Years" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Years</SelectItem>
+                          {financialYears.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Start Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal">
+                              {startDate ? format(startDate, "PPP") : "Pick a date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">End Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal">
+                              {endDate ? format(endDate, "PPP") : "Pick a date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" size="sm" onClick={resetFilters} className="w-full">
+                      Reset Filters
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Active filters display */}
+              {(selectedClient !== "all" || selectedFinancialYear !== "all" || startDate || endDate) && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedClient !== "all" && (
+                    <div className="flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs">
+                      <span>Client: {clients.find((c) => c._id === selectedClient)?.name || "Selected"}</span>
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedClient("all")} />
+                    </div>
+                  )}
+                  {selectedFinancialYear !== "all" && (
+                    <div className="flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs">
+                      <span>FY: {selectedFinancialYear}</span>
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedFinancialYear("all")} />
+                    </div>
+                  )}
+                  {startDate && (
+                    <div className="flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs">
+                      <span>From: {format(startDate, "dd/MM/yy")}</span>
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setStartDate(undefined)} />
+                    </div>
+                  )}
+                  {endDate && (
+                    <div className="flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs">
+                      <span>To: {format(endDate, "dd/MM/yy")}</span>
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setEndDate(undefined)} />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -105,10 +330,31 @@ export default function InvoicesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead className="cursor-pointer" onClick={() => toggleSort("invoiceNumber")}>
+                      <div className="flex items-center">
+                        Invoice #
+                        {sortField === "invoiceNumber" && (
+                          <ArrowUpDown className={`ml-1 h-4 w-4 ${sortOrder === "desc" ? "rotate-180" : ""}`} />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer" onClick={() => toggleSort("invoiceDate")}>
+                      <div className="flex items-center">
+                        Date
+                        {sortField === "invoiceDate" && (
+                          <ArrowUpDown className={`ml-1 h-4 w-4 ${sortOrder === "desc" ? "rotate-180" : ""}`} />
+                        )}
+                      </div>
+                    </TableHead>
                     <TableHead>Client</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right cursor-pointer" onClick={() => toggleSort("total")}>
+                      <div className="flex items-center justify-end">
+                        Amount
+                        {sortField === "total" && (
+                          <ArrowUpDown className={`ml-1 h-4 w-4 ${sortOrder === "desc" ? "rotate-180" : ""}`} />
+                        )}
+                      </div>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -135,31 +381,33 @@ export default function InvoicesPage() {
                             <span className="sr-only">Print</span>
                           </Button>
 
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Delete</span>
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this invoice? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(invoice._id!)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          {isAdmin && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Delete</span>
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this invoice? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(invoice._id!)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import clientPromise from "@/lib/mongodb"
+import { getSession } from "@/lib/auth"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -69,6 +70,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
+    // Check if user is admin
+    const session = await getSession()
+    if (!session || session.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized. Only admins can delete invoices." }, { status: 403 })
+    }
+
     const client = await clientPromise
     const db = client.db("invoicing")
 

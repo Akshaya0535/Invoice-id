@@ -4,33 +4,62 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { FileText, Users, Home, Settings } from "lucide-react"
-
-const navItems = [
-  {
-    name: "Dashboard",
-    href: "/",
-    icon: Home,
-  },
-  {
-    name: "Invoices",
-    href: "/invoices",
-    icon: FileText,
-  },
-  {
-    name: "Clients",
-    href: "/clients",
-    icon: Users,
-  },
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
-]
+import { FileText, Users, Home, Settings, UserPlus } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [session, setSession] = useState<{ username: string; role: string } | null>(null)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch("/api/auth/session")
+        const data = await response.json()
+        setSession(data.user)
+      } catch (error) {
+        console.error("Session check failed:", error)
+      }
+    }
+
+    checkSession()
+  }, [])
+
+  const baseNavItems = [
+    {
+      name: "Dashboard",
+      href: "/",
+      icon: Home,
+    },
+    {
+      name: "Invoices",
+      href: "/invoices",
+      icon: FileText,
+    },
+    {
+      name: "Clients",
+      href: "/clients",
+      icon: Users,
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+    },
+  ]
+
+  // Add admin-only navigation items
+  const navItems =
+    session?.role === "admin"
+      ? [
+          ...baseNavItems,
+          {
+            name: "User Management",
+            href: "/users",
+            icon: UserPlus,
+          },
+        ]
+      : baseNavItems
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-background">
@@ -39,7 +68,7 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (
             <Link key={item.href} href={item.href}>
               <Button
