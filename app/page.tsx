@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Users, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { LanyardPresence } from "@/components/lanyard-presence"
+
 
 export default function Dashboard() {
   return (
@@ -45,9 +45,6 @@ export default function Dashboard() {
           </Card>
         </Link>
 
-        <div className="md:col-span-2 lg:col-span-3">
-          <LanyardPresence />
-        </div>
       </div>
     </div>
   )
