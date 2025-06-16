@@ -64,7 +64,8 @@ export function Sidebar() {
   return (
     <div className="flex h-full w-64 flex-col border-r bg-background">
       <div className="flex h-14 items-center border-b px-4">
-        <h1 className="text-lg font-semibold">Invoice System</h1>
+        <img src="/logo.jpg" alt="Logo" className="h-10 w-10 border-2 rounded-lg" />
+        <h1 className="ml-3 text-lg font-semibold whitespace-wrap leading-[1] ">Trrios Engineering Solutions</h1>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => {
