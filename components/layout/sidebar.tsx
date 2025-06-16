@@ -41,11 +41,11 @@ export function Sidebar() {
       href: "/clients",
       icon: Users,
     },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: Settings,
-    },
+    // {
+    //   name: "Settings",
+    //   href: "/settings",
+    //   icon: Settings,
+    // },
   ]
 
   // Add admin-only navigation items
