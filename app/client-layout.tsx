@@ -7,12 +7,17 @@ import { Button } from "@/components/ui/button"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+import type { Session } from "@/types"
+
+
+
 export default function ClientLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const [session, setSession] = useState(null)
+  const [session, setSession] = useState<Session["user"] | null>(null)
+
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
