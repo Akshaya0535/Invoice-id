@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-      <ThemeProvider
+      {/* <ThemeProvider
             attribute="class"
 
             defaultTheme="light"
@@ -26,7 +26,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-       </ThemeProvider>
+       </ThemeProvider> */}
           
         <ClientLayout>{children}</ClientLayout>
       </body>
