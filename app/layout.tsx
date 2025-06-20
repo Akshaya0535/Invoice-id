@@ -18,13 +18,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-      <ThemeProvider
+      {/* <ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
-       </ThemeProvider>
+       </ThemeProvider> */}
           
         <ClientLayout>{children}</ClientLayout>
       </body>
