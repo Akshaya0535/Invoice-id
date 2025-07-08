@@ -7,7 +7,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "security-audit": "node scripts/security-audit.js",
+    "security-check": "npm run security-audit && npm run lint",
+    "prebuild": "npm run security-check",
+    "test": "vitest",
+    "test:security": "vitest tests/security.test.ts",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "audit": "npm audit --audit-level=moderate",
+    "audit:fix": "npm audit fix",
+    "security-scan": "npm run security-audit && npm run audit && npm run test:security"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "latest",
@@ -52,12 +62,15 @@
     "embla-carousel-react": "8.5.1",
     "gcp-metadata": "latest",
     "input-otp": "1.4.1",
+    "isomorphic-dompurify": "^2.26.0",
+    "jsonwebtoken": "^9.0.2",
     "kerberos": "latest",
     "lucide-react": "^0.454.0",
     "mongodb": "latest",
     "mongodb-client-encryption": "latest",
     "next": "15.2.4",
     "next-themes": "latest",
+    "pnpm": "^10.12.4",
     "react": "^19",
     "react-day-picker": "latest",
     "react-dom": "^19",
@@ -76,8 +89,10 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^1.0.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^1.0.0"
   }
 }

@@ -1,26 +1,44 @@
 import crypto from "crypto"
+import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import type { User } from "@/types"
 import clientPromise from "./mongodb"
 
-export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex")
+// Add JWT for secure session management
+import jwt from "jsonwebtoken"
+
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex')
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex')
+
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
 }
 
-export function verifyPassword(password: string, hashedPassword: string): boolean {
-  const hash = hashPassword(password)
-  return hash === hashedPassword
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return await bcrypt.compare(password, hashedPassword)
 }
 
 export async function createSession(user: { id: string; username: string; role: string }) {
-  const sessionData = JSON.stringify(user)
+  const sessionId = crypto.randomBytes(32).toString('hex')
+  const sessionData = {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    sessionId,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7), // 7 days
+  }
+  
+  const token = jwt.sign(sessionData, JWT_SECRET, { expiresIn: '7d' })
   const cookieStore = await cookies()
 
-  cookieStore.set("session", sessionData, {
+  cookieStore.set("session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: "/",
   })
 }
 
@@ -31,8 +49,17 @@ export async function getSession() {
 
     if (!session) return null
 
-    return JSON.parse(session.value)
+    const decoded = jwt.verify(session.value, JWT_SECRET) as any
+    
+    // Check if session is expired
+    if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
+      await destroySession()
+      return null
+    }
+
+    return decoded
   } catch {
+    await destroySession()
     return null
   }
 }
@@ -70,7 +97,7 @@ export async function createUser(userData: Omit<User, "id" | "createdAt" | "upda
     const client = await clientPromise
     const db = client.db("invoice_system")
 
-    const hashedPassword = hashPassword(userData.password)
+    const hashedPassword = await hashPassword(userData.password)
 
     const result = await db.collection("users").insertOne({
       username: userData.username,

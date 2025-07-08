@@ -2,9 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSession, hashPassword, verifyPassword } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
-
-// Add import for password validation
 import { validatePassword } from "@/lib/password-validation"
+import { logError } from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,7 +58,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Password changed successfully" })
   } catch (error) {
-    console.error("Change password error:", error)
+    logError("Change password error", { 
+      error: error instanceof Error ? error.message : "Unknown error",
+      endpoint: "/api/auth/change-password"
+    }, request)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
