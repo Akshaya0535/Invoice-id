@@ -61,7 +61,6 @@
     "embla-carousel-react": "8.5.1",
     "gcp-metadata": "latest",
     "input-otp": "1.4.1",
-    "isomorphic-dompurify": "^2.26.0",
     "jsonwebtoken": "^9.0.2",
     "kerberos": "latest",
     "lucide-react": "^0.454.0",

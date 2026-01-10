@@ -1,5 +1,13 @@
 import { z } from "zod"
-import DOMPurify from "isomorphic-dompurify"
+
+// Simple server-side sanitization function
+// Removes HTML tags and dangerous characters
+function serverSanitize(input: string): string {
+  return input
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/[<>]/g, '') // Remove < and >
+    .trim()
+}
 
 // Base validation schemas
 export const usernameSchema = z
@@ -28,7 +36,7 @@ export const clientSchema = z.object({
     .string()
     .min(1, "Client name is required")
     .max(100, "Client name must be less than 100 characters")
-    .transform(val => DOMPurify.sanitize(val.trim())),
+    .transform(val => serverSanitize(val)),
   gstin: z
     .string()
     .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, "Invalid GSTIN format")
@@ -38,17 +46,17 @@ export const clientSchema = z.object({
     .string()
     .min(1, "Address is required")
     .max(500, "Address must be less than 500 characters")
-    .transform(val => DOMPurify.sanitize(val.trim())),
+    .transform(val => serverSanitize(val)),
   city: z
     .string()
     .min(1, "City is required")
     .max(50, "City must be less than 50 characters")
-    .transform(val => DOMPurify.sanitize(val.trim())),
+    .transform(val => serverSanitize(val)),
   state: z
     .string()
     .min(1, "State is required")
     .max(50, "State must be less than 50 characters")
-    .transform(val => DOMPurify.sanitize(val.trim())),
+    .transform(val => serverSanitize(val)),
   pincode: z
     .string()
     .regex(/^[1-9][0-9]{5}$/, "Invalid pincode format")
@@ -61,7 +69,7 @@ export const invoiceItemSchema = z.object({
     .string()
     .min(1, "Item description is required")
     .max(200, "Description must be less than 200 characters")
-    .transform(val => DOMPurify.sanitize(val.trim())),
+    .transform(val => serverSanitize(val)),
   hsnCode: z
     .string()
     .regex(/^[0-9]{4,8}$/, "Invalid HSN code format")
@@ -96,7 +104,7 @@ export const invoiceSchema = z.object({
     .string()
     .max(1000, "Notes must be less than 1000 characters")
     .optional()
-    .transform(val => val ? DOMPurify.sanitize(val.trim()) : ""),
+    .transform(val => val ? serverSanitize(val) : ""),
 })
 
 // User validation schema
@@ -122,7 +130,7 @@ export const changePasswordSchema = z.object({
 
 // Sanitization utility
 export function sanitizeInput(input: string): string {
-  return DOMPurify.sanitize(input.trim())
+  return serverSanitize(input)
 }
 
 // Rate limiting helper
@@ -145,4 +153,4 @@ export function createRateLimiter(maxRequests: number, windowMs: number) {
     userRequests.count++
     return false
   }
-} 
+}
