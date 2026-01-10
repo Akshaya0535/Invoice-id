@@ -165,3 +165,6 @@ export const logInfo = (message: string, context?: Record<string, any>, request?
 
 export const logDebug = (message: string, context?: Record<string, any>, request?: NextRequest) => 
   logger.debug(message, context, request) 
+
+export const securityEvent = (event: string, details: Record<string, any>, request?: NextRequest) => 
+  logger.securityEvent(event, details, request)
