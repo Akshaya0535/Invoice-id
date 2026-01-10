@@ -5,9 +5,8 @@ import ClientLayout from "./client-layout"
 import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.dev",
+  title: "Invoicing App",
+  description: "Trrios Engineering Solutions",
 }
 
 export default function RootLayout({
