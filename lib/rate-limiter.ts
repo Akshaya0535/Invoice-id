@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createRateLimiter } from "./validation"
 
 // Create rate limiters for different endpoints
-const loginRateLimiter = createRateLimiter(5, 15 * 60 * 1000) // 5 attempts per 15 minutes
+const loginRateLimiter = createRateLimiter(5, 15 * 60 * 60 * 1000) // 5 attempts per 15 seconds
 const apiRateLimiter = createRateLimiter(100, 60 * 1000) // 100 requests per minute
 const authRateLimiter = createRateLimiter(10, 60 * 1000) // 10 requests per minute
 
